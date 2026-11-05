@@ -301,7 +301,7 @@ def admin_home(request: Request):
         google_email=db.get_setting("google_email"),
         root_name=db.get_setting("root_folder_name"),
         last_sync=db.get_setting("last_sync"), last_error=db.get_setting("last_sync_error"),
-        sync_running=sync.is_running(), interval=SYNC_INTERVAL_MIN,
+        sync_running=sync.is_running(), progress=sync.progress, interval=SYNC_INTERVAL_MIN,
     )
 
 
@@ -354,8 +354,11 @@ def set_root(request: Request, link: str = Form(...)):
 @app.post("/admin/sync")
 async def sync_now(request: Request):
     require_admin(request)
-    msg = await asyncio.to_thread(sync.run_sync)
-    flash(request, msg, "error" if msg.startswith("Ошибка") else "ok")
+    if sync.is_running():
+        flash(request, "Синхронизация уже идёт")
+    else:
+        asyncio.get_running_loop().run_in_executor(None, sync.run_sync)
+        flash(request, "Синхронизация запущена. Страница будет обновляться сама.")
     return RedirectResponse("/admin", status_code=303)
 
 

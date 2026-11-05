@@ -135,19 +135,29 @@ def access_token() -> str:
         return _token_cache["token"]
 
 
-def _get(url, params=None, stream=False):
-    r = requests.get(
-        url,
-        params=params,
-        headers={"Authorization": "Bearer " + access_token()},
-        stream=stream,
-        timeout=(15, 300),
-    )
-    if r.status_code != 200:
+RETRY_STATUS = {429, 500, 502, 503, 504}
+
+
+def _get(url, params=None, stream=False, timeout=(15, 300)):
+    """GET к Drive API. При перегрузке Google повторяем запрос с паузой."""
+    for attempt in range(6):
+        r = requests.get(
+            url,
+            params=params,
+            headers={"Authorization": "Bearer " + access_token()},
+            stream=stream,
+            timeout=timeout,
+        )
+        if r.status_code == 200:
+            return r
+        rate_limited = r.status_code == 403 and not stream and "ateLimitExceeded" in r.text
+        if (r.status_code in RETRY_STATUS or rate_limited) and attempt < 5:
+            r.close()
+            time.sleep(2 ** attempt)
+            continue
         msg = r.text[:300] if not stream else r.status_code
         r.close()
         raise DriveError(f"Ошибка Google Drive ({r.status_code}): {msg}")
-    return r
 
 
 def folder_id_from_link(text: str) -> str:
@@ -174,7 +184,7 @@ def list_children(folder_id: str):
         "includeItemsFromAllDrives": "true",
     }
     while True:
-        data = _get(f"{API}/files", params).json()
+        data = _get(f"{API}/files", params, timeout=(15, 60)).json()
         yield from data.get("files", [])
         token = data.get("nextPageToken")
         if not token:

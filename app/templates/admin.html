@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+{% if sync_running %}<meta http-equiv="refresh" content="5">{% endif %}
 <h1>Администрирование</h1>
 
 <div class="stats">
@@ -45,10 +46,13 @@
   <h2>3. Синхронизация</h2>
   <p>Автоматически каждые {{ interval }} мин.
     Последняя: <b>{{ last_sync or 'ещё не было' }}</b> (UTC)
-    {% if sync_running %} — <i>идёт сейчас…</i>{% endif %}</p>
+    </p>
+  {% if sync_running %}
+    <p class="hint">⏳ Идёт синхронизация: прочитано папок — <b>{{ progress.folders }}</b>, найдено файлов и папок — <b>{{ progress.items }}</b>. Страница обновляется сама.</p>
+  {% endif %}
   {% if last_error %}<p class="error">Последняя ошибка: {{ last_error }}</p>{% endif %}
   <form method="post" action="/admin/sync">
-    <button class="primary" {{ 'disabled' if not (connected and root_name) }}>Синхронизировать сейчас</button>
+    <button class="primary" {{ 'disabled' if not (connected and root_name) or sync_running }}>Синхронизировать сейчас</button>
   </form>
 </section>
 {% endblock %}
