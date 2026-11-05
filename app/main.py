@@ -175,6 +175,11 @@ def search(q: str, include_hidden: bool):
 
 # ---------- вход ----------
 
+@app.get("/privacy", response_class=HTMLResponse)
+def privacy(request: Request):
+    return render(request, "privacy.html", current_user(request))
+
+
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     if current_user(request):
