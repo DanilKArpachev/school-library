@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% macro icon(it) -%}
+{%- if it.is_folder -%}📁
+{%- elif it.mime == 'application/pdf' -%}📕
+{%- elif 'word' in it.mime or it.mime.endswith('.document') -%}📄
+{%- elif 'sheet' in it.mime or 'excel' in it.mime -%}📊
+{%- elif 'presentation' in it.mime or 'powerpoint' in it.mime -%}📽️
+{%- elif it.mime.startswith('image/') -%}🖼️
+{%- elif it.mime.startswith('video/') -%}🎬
+{%- else -%}📎{%- endif -%}
+{%- endmacro %}
+{% macro size(n) -%}
+{%- if n is none -%}{%- elif n < 1024*1024 -%}{{ (n/1024)|round(0)|int }} КБ
+{%- else -%}{{ (n/1024/1024)|round(1) }} МБ{%- endif -%}
+{%- endmacro %}
+{% set base = '/admin/files' if admin_mode else '/' %}
+{% block content %}
+{% if admin_mode %}<p class="hint">Режим администратора: скрытые файлы и папки учителя не видят.</p>{% endif %}
+<form method="get" action="{{ base }}" class="search">
+  <input name="q" value="{{ q }}" placeholder="Поиск по названию…">
+  <button>Найти</button>
+</form>
+
+<div class="crumbs">
+  <a href="{{ base }}">Главная</a>
+  {% for c in crumbs %} › <a href="{{ base }}?folder={{ c.id|urlencode }}">{{ c.name }}</a>{% endfor %}
+  {% if q %} › Поиск: «{{ q }}»{% endif %}
+</div>
+
+{% if not items %}
+  <p class="muted">{% if q %}Ничего не найдено.{% else %}Здесь пока пусто.{% endif %}</p>
+{% endif %}
+
+<ul class="files">
+{% for it in items %}
+  <li class="{{ 'hidden-item' if it.hidden }}">
+    {% if it.is_folder %}
+      <a class="name" href="{{ base }}?folder={{ it.id|urlencode }}">{{ icon(it) }} {{ it.name }}</a>
+    {% else %}
+      <span class="name">{{ icon(it) }} {{ it.name }}
+        <small class="muted">{{ size(it.size) }}{% if it.mime in exports %} · {{ exports[it.mime][1] }}{% endif %}</small>
+      </span>
+      <span class="actions">
+        {% if it.mime == 'application/pdf' %}<a href="/download/{{ it.id|urlencode }}?inline=1" target="_blank">Открыть</a>{% endif %}
+        <a class="btn" href="/download/{{ it.id|urlencode }}">Скачать</a>
+      </span>
+    {% endif %}
+    {% if admin_mode %}
+      <form method="post" action="/admin/files/{{ it.id|urlencode }}/toggle" class="inline">
+        <input type="hidden" name="back" value="{{ request.url.path }}?{{ request.url.query }}">
+        <button class="small">{{ 'Показать' if it.hidden else 'Скрыть' }}</button>
+      </form>
+    {% endif %}
+  </li>
+{% endfor %}
+</ul>
+{% endblock %}

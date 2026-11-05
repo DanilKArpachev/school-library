@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Учителя</h1>
+
+{% if new_password %}
+<div class="flash ok">
+  Логин: <b>{{ new_user }}</b><br>
+  Пароль: <b class="mono">{{ new_password }}</b><br>
+  <small>Скопируйте и передайте учителю — пароль больше не будет показан.</small>
+</div>
+{% endif %}
+
+<section class="card">
+  <h2>Добавить учителя</h2>
+  <form method="post" action="/admin/users" class="stack">
+    <label>ФИО <input name="full_name" placeholder="Иванова Анна Сергеевна"></label>
+    <label>Логин <input name="username" placeholder="ivanova" required pattern="\S+"></label>
+    <label>Пароль <input name="password" placeholder="оставьте пустым — придумаю сам"></label>
+    <button class="primary">Создать</button>
+  </form>
+</section>
+
+<table class="table">
+  <tr><th>ФИО / логин</th><th>Последний вход</th><th></th></tr>
+  {% for u in users %}
+  <tr class="{{ 'hidden-item' if not u.is_active }}">
+    <td>{{ u.full_name or '—' }}<br><small class="muted">{{ u.username }}{% if u.is_admin %} · админ{% endif %}{% if not u.is_active %} · заблокирован{% endif %}</small></td>
+    <td><small>{{ u.last_login or 'не входил' }}</small></td>
+    <td class="actions">
+      <form method="post" action="/admin/users/{{ u.id }}/reset" class="inline"
+            onsubmit="return confirm('Сбросить пароль для {{ u.username }}?')"><button class="small">Новый пароль</button></form>
+      {% if u.id != user.id %}
+      <form method="post" action="/admin/users/{{ u.id }}/toggle" class="inline"><button class="small">{{ 'Разблокировать' if not u.is_active else 'Заблокировать' }}</button></form>
+      <form method="post" action="/admin/users/{{ u.id }}/delete" class="inline"
+            onsubmit="return confirm('Удалить {{ u.username }}?')"><button class="small danger">Удалить</button></form>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

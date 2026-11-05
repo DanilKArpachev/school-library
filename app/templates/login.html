@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card narrow">
+  <h1>📚 {{ site_name }}</h1>
+  <form method="post" action="/login" class="stack">
+    <label>Логин <input name="username" autocomplete="username" required autofocus></label>
+    <label>Пароль <input name="password" type="password" autocomplete="current-password" required></label>
+    <button class="primary">Войти</button>
+  </form>
+  <p class="muted">Нет логина? Обратитесь к администратору.</p>
+</div>
+{% endblock %}

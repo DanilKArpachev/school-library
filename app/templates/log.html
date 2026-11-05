@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Журнал скачиваний</h1>
+<p class="muted">Последние 300 записей, время в UTC.</p>
+<table class="table">
+  <tr><th>Когда</th><th>Кто</th><th>Файл</th></tr>
+  {% for r in rows %}
+  <tr><td><small>{{ r.at }}</small></td><td>{{ r.username }}</td><td>{{ r.name }}</td></tr>
+  {% else %}
+  <tr><td colspan="3" class="muted">Пока пусто</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ site_name }}{% endblock %}</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+{% if user %}
+<header class="top">
+  <a class="brand" href="/">📚 {{ site_name }}</a>
+  <nav>
+    <a href="/">Материалы</a>
+    {% if user.is_admin %}
+      <a href="/admin">Админка</a>
+      <a href="/admin/users">Учителя</a>
+      <a href="/admin/files">Файлы</a>
+      <a href="/admin/log">Журнал</a>
+    {% endif %}
+    <a href="/account">{{ user.full_name or user.username }}</a>
+    <form method="post" action="/logout" class="inline"><button class="link">Выйти</button></form>
+  </nav>
+</header>
+{% endif %}
+<main>
+  {% if flash %}<div class="flash {{ flash[0] }}">{{ flash[1] }}</div>{% endif %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

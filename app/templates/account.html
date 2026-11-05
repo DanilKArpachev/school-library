@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card narrow">
+  <h1>Мой аккаунт</h1>
+  <p>Логин: <b>{{ user.username }}</b></p>
+  <h2>Сменить пароль</h2>
+  <form method="post" action="/account/password" class="stack">
+    <label>Текущий пароль <input name="old" type="password" autocomplete="current-password" required></label>
+    <label>Новый пароль (от 8 символов) <input name="new" type="password" minlength="8" autocomplete="new-password" required></label>
+    <button class="primary">Сохранить</button>
+  </form>
+</div>
+{% endblock %}

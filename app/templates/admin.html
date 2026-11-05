@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Администрирование</h1>
+
+<div class="stats">
+  <div><b>{{ stats.files }}</b> файлов</div>
+  <div><b>{{ stats.folders }}</b> папок</div>
+  <div><b>{{ stats.users }}</b> учителей</div>
+  <div><b>{{ stats.downloads }}</b> скачиваний</div>
+</div>
+
+<section class="card">
+  <h2>1. Google-аккаунт</h2>
+  {% if not configured %}
+    <p class="error">Не заданы GOOGLE_CLIENT_ID и GOOGLE_CLIENT_SECRET в файле .env на сервере.</p>
+  {% elif connected %}
+    <p>✅ Подключён: <b>{{ google_email or 'аккаунт Google' }}</b></p>
+    <form method="post" action="/admin/google/disconnect" class="inline"
+          onsubmit="return confirm('Отключить Google? Учителя не смогут скачивать файлы.')">
+      <button class="small">Отключить</button>
+    </form>
+  {% else %}
+    <ol>
+      <li><a class="btn" href="/admin/google/connect" target="_blank">Подключить Google</a> — откроется новая вкладка. Войдите в аккаунт, у которого есть доступ к папке, и разрешите доступ.</li>
+      <li>В конце браузер покажет ошибку «Не удаётся открыть страницу» — <b>так и должно быть</b>. Скопируйте адрес из адресной строки (начинается с <code>http://localhost/?</code>…).</li>
+      <li>Вставьте его сюда:</li>
+    </ol>
+    <form method="post" action="/admin/google/finish" class="stack">
+      <input name="url" placeholder="http://localhost/?state=...&code=..." required>
+      <button class="primary">Завершить подключение</button>
+    </form>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>2. Папка с материалами</h2>
+  {% if root_name %}<p>Текущая папка: <b>{{ root_name }}</b></p>{% endif %}
+  <form method="post" action="/admin/root" class="stack">
+    <input name="link" placeholder="Ссылка на папку Google Диска" required>
+    <button {{ 'disabled' if not connected }}>{{ 'Сменить папку' if root_name else 'Выбрать папку' }}</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>3. Синхронизация</h2>
+  <p>Автоматически каждые {{ interval }} мин.
+    Последняя: <b>{{ last_sync or 'ещё не было' }}</b> (UTC)
+    {% if sync_running %} — <i>идёт сейчас…</i>{% endif %}</p>
+  {% if last_error %}<p class="error">Последняя ошибка: {{ last_error }}</p>{% endif %}
+  <form method="post" action="/admin/sync">
+    <button class="primary" {{ 'disabled' if not (connected and root_name) }}>Синхронизировать сейчас</button>
+  </form>
+</section>
+{% endblock %}
