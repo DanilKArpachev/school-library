@@ -48,7 +48,7 @@
     Последняя: <b>{{ last_sync or 'ещё не было' }}</b> (UTC)
     </p>
   {% if sync_running %}
-    <p class="hint">⏳ Идёт синхронизация: прочитано папок — <b>{{ progress.folders }}</b>, найдено файлов и папок — <b>{{ progress.items }}</b>. Страница обновляется сама.</p>
+    <p class="hint">⏳ Идёт синхронизация: прочитано папок — <b>{{ progress['folders'] }}</b>, найдено файлов и папок — <b>{{ progress['items'] }}</b>. Страница обновляется сама.</p>
   {% endif %}
   {% if last_error %}<p class="error">Последняя ошибка: {{ last_error }}</p>{% endif %}
   <form method="post" action="/admin/sync">
